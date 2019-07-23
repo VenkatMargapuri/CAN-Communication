@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/include",
+                "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/src",
+                "C:/Users/margs/.platformio/packages/framework-libopencm3",
+                "C:/Users/margs/.platformio/packages/framework-libopencm3/include",
+                "C:/Users/margs/.platformio/packages/tool-unity",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${workspaceRoot}/.vscode/.browse.c_cpp.db",
+                "path": [
+                    "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/include",
+                    "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/src",
+                    "C:/Users/margs/.platformio/packages/framework-libopencm3",
+                    "C:/Users/margs/.platformio/packages/framework-libopencm3/include",
+                    "C:/Users/margs/.platformio/packages/tool-unity",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=40000",
+                "STM32F4",
+                "STM32F407xx",
+                "STM32F40_41xxx",
+                "ARDUINO_STM32DiscoveryF407",
+                "BOARD_discovery_f4",
+                "F_CPU=168000000L",
+                "DISCO_F407VG",
+                ""
+            ],
+            "intelliSenseMode": "clang-x64",
+            "compilerPath": "\"C:/Users/margs/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe\" -mthumb -mcpu=cortex-m4"
+        }
+    ],
+    "version": 4
+}
