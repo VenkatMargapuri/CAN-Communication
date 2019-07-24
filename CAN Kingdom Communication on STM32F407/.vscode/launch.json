@@ -12,7 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/.pio/build/disco_f407vg/firmware.elf",
+            "executable": "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/.pio/build/disco_f407vg/firmware.elf",
             "toolchainBinDir": "C:/Users/margs/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "svdPath": "C:/Users/margs/.platformio/platforms/ststm32/misc/svd/STM32F40x.svd",
             "preLaunchTask": {
@@ -25,7 +25,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/.pio/build/disco_f407vg/firmware.elf",
+            "executable": "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/.pio/build/disco_f407vg/firmware.elf",
             "toolchainBinDir": "C:/Users/margs/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "svdPath": "C:/Users/margs/.platformio/platforms/ststm32/misc/svd/STM32F40x.svd",
             "internalConsoleOptions": "openOnSessionStart"
