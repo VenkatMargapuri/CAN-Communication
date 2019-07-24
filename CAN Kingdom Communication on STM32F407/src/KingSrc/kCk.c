@@ -36,7 +36,6 @@ void ckKP0(uint8_t city, actModeT am, commModeT cm) {
      (uint8_t)city, 0, (uint8_t)am, (uint8_t)cm,
      0, // Keep current city mode
      0,0,0);
-  //canWriteMessage(kingsEnv, buf, 8);
 	can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
 
 }
@@ -54,8 +53,6 @@ void ckKP1(uint8_t city, long baseNo, uint8_t respPage, bool extF) {
     buf[7] |= 0x80;
 
   can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-
-  //canWriteMessage(kingsEnv, buf, 8);
 }
 
 // Kings page 2. Always enabled.
@@ -74,8 +71,6 @@ void ckKP2(uint8_t city, uint32_t env, uint8_t folder, bool extF /* = 0 */) {
   buf[7] = 3; // Enable the folder, assign the new envelope.
 
 	can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-
-  //canWriteMessage(kingsEnv, buf, 8);
 }
 
 // Kings page 3. Assigning a City to Groups
@@ -85,8 +80,7 @@ void ckKP3(uint8_t city, uint8_t gr1, uint8_t gr2, uint8_t gr3, uint8_t gr4, uin
     (uint8_t)city, 3, (uint8_t)gr1, (uint8_t)gr2, (uint8_t)gr3, (uint8_t)gr4, (uint8_t)gr5, (uint8_t)gr6);
 
   can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-
-  //canWriteMessage(kingsEnv, buf, 8);
+  
 }
 
 // Kings page 4. Removing a City from Groups
@@ -96,7 +90,6 @@ void ckKP4(uint8_t city, uint8_t gr1, uint8_t gr2, uint8_t gr3, uint8_t gr4, uin
     (uint8_t)city, 4, (uint8_t)gr1, (uint8_t)gr2, (uint8_t)gr3, (uint8_t)gr4, (uint8_t)gr5, (uint8_t)gr6);
     	
   can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-  //canWriteMessage(kingsEnv, buf, 8);
 }
 
 void ckKP5(uint8_t city, uint8_t pageNo, uint8_t actionFolderNo, uint8_t actionFormNo, uint8_t reactionFolderNo, uint8_t reactionFormNo)
@@ -106,14 +99,6 @@ void ckKP5(uint8_t city, uint8_t pageNo, uint8_t actionFolderNo, uint8_t actionF
   can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);      
 }
 
-//Message from the mayor with id != 0
-void ckMP1(uint8_t city, uint8_t pageNo, uint8_t actionFolderNo, uint8_t actionFormNo, uint8_t reactionFolderNo, uint8_t reactionFormNo)
-{
-  uint8_t buf[8];
-  fillBuf(buf, city, pageNo, actionFolderNo, actionFormNo, 0, reactionFolderNo, reactionFormNo, 0);
-  can_transmit(CAN1, 2, false, false, 8, (void*) &buf);      
-}
-
 // Kings page 8. Change the baudrate.
 void ckKP8(uint8_t city, int brChip, uint8_t btr0, uint8_t btr1) {
   uint8_t buf[8];
@@ -121,7 +106,6 @@ void ckKP8(uint8_t city, int brChip, uint8_t btr0, uint8_t btr1) {
     (uint8_t)city, 8, (uint8_t)brChip, 0, (uint8_t)btr0, (uint8_t)btr1, 0,0);
 
   can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);    
-  //canWriteMessage(kingsEnv, buf, 8);
 }
 
 // Kings page 9. Change of City physical address
@@ -133,8 +117,6 @@ void ckKP9(uint8_t city, int newCity, uint8_t respPage /* = 255 */) {
     (uint8_t)newCity,
     0, 0, 0, 0);
 	can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-
- // canWriteMessage(kingsEnv, buf, 8);
 }
 
 // Kings page 20. Set filters.
@@ -148,8 +130,6 @@ void ckKP20(uint8_t city, uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3, bool e
      b0,b1,b2,b3,
      (uint8_t)fPrimitiveNo, (uint8_t)fNo);
 	can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
-
-  //canWriteMessage(kingsEnv, buf, 8);
 }
 
 
@@ -172,15 +152,6 @@ void ckKP16(uint8_t city, uint8_t folder, uint16_t doc, uint8_t dlc, bool txF, b
   while(i == -1){
     can_transmit(CAN1, kingsEnv, false, false, 8, (void*) &buf);
   }
-
- // canWriteMessage(kingsEnv, buf, 8);
-}
-
-void KingInit(){
-  for(int i = 0; i < cityMaxCount; i++)
-  {
-    mayorInfo[i].city = -1;
-  }
 }
 
 void ckDefineFolder(uint8_t city, uint8_t folder, uint32_t env, uint16_t doc, uint8_t dlc,
@@ -190,5 +161,11 @@ void ckDefineFolder(uint8_t city, uint8_t folder, uint32_t env, uint16_t doc, ui
 }
 
 
-
-
+/* ToDo: The method should be moved to a Mayor class */
+//Message from the mayor with id != 0
+void ckMP1(uint8_t city, uint8_t pageNo, uint8_t actionFolderNo, uint8_t actionFormNo, uint8_t reactionFolderNo, uint8_t reactionFormNo)
+{
+  uint8_t buf[8];
+  fillBuf(buf, city, pageNo, actionFolderNo, actionFormNo, 0, reactionFolderNo, reactionFormNo, 0);
+  can_transmit(CAN1, 2, false, false, 8, (void*) &buf);      
+}

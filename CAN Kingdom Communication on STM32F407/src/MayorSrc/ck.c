@@ -1,35 +1,9 @@
-/* ck.c
- *
- * Mats �kerblom  Kvaser AB  1995-09-25
- * Last changed              2000-09-25
- *
- */
-
 #include "./rtos/FreeRTOS.h"
 #include <stdio.h>
 #include <string.h>
 #include "ck.h"
 #include "../include/rtos/canmsgs.h"
 
-//#include "ckhal.h"
-
-/// From CkHal.c
-
-// Set communication mode. Depending on hardware, some modes may not be supported, in 
-// which case a higher mode is selected.
-void canSetCommMode(ckCommMode commMode) {
-  switch(commMode) {
-    case ckSilent:      // The output is disabled, not even acks's are transmitted.
-     // can_bus_off(can_fd);
-      break;
-    case ckListenOnly:  // We listen but respond only to Kings Letters.
-    case ckCommunicate: // Normal communication.
-    //  can_bus_on(can_fd);
-      break;
-    default:
-      break;
-  }
-}
 
 // The variables ckSlots[], ckGroups[] and ckConf are not static so they can
 // be read by the application for debug purposes. They should however
@@ -73,9 +47,6 @@ static int findSlotEnv(uint32_t env, uint8_t extF, uint8_t txF);
 int findSlotEnvRTR(uint32_t env, uint8_t extF);
 
 static void KingsDoc(uint8_t *msgBuf, uint8_t msgLen);
-/*int findFolderDoc(uint16_t docNo, uint8_t txF);
-int findFolderEnv(uint32_t env, uint8_t extF);
-int findFolderFolder(uint8_t folder);*/
 static int createSlot(uint8_t folder, uint16_t doc, uint8_t docF, uint32_t env, uint8_t extF);
 static int updateSlot(int i);
 static void deleteSlot(int i);
@@ -86,21 +57,12 @@ static void KP2(uint8_t *msg);
 static void KP3(uint8_t *msgBuf);
 static void KP4(uint8_t *msgBuf);
 static void KP5(uint8_t *msgBuf);
-static void hifi(uint8_t *msgBuf);
 static void KP8(uint8_t *msgBuf);
 static void KP9(uint8_t *msgBuf);
 static void KP16(uint8_t *msg);
 static void KP21(uint8_t *msg);
 static void KP22(uint8_t *msg);
 static void KP129(uint8_t *msg);
-//static void KP130(uint8_t *msg);
-//static int ckGetFolder(uint8_t i, uint8_t page);
-
-//extern void ckappSetActionMode(ckActMode am);
-//extern void ckappDispatchFreeze(uint16_t doc, uint8_t *msgBuf, uint8_t msgLen);
-//extern void ckappDispatchRTR(uint16_t doc, bool txF);
-//extern int ckappMayorsPage(uint8_t page, uint8_t *buf);
-//extern void ckappDispatch (uint16_t doc, uint8_t *msgBuf, uint8_t msgLen);
 
 can_cfg_t defdocCfg = {125000, 13, 2, 1, 0};
 #define defdocEnv 2031L
@@ -110,15 +72,12 @@ uint8_t buf[8];
 
 void goSilent(void) {
   commMode = ckSilent;
-  canSetCommMode(ckSilent);
 }
 void goListenOnly(void) {
   commMode = ckListenOnly;
-  canSetCommMode(ckListenOnly);
 }
 void goCommunicate(void) {
   commMode = ckCommunicate;
-  canSetCommMode(ckCommunicate);
 }
 
 // Sets the module to freeze mode. Can be called by some external function,
@@ -255,14 +214,14 @@ int ckInit (ckStartupMode startupMode)
       goCommunicate (); // Open the CAN-output so we can send Ack's
       updateMayor ();
       ckSetRunning ();
-      mayorInitTx(mayorID);
+     // mayorInitTx(mayorID);
    }
    else
    {
       goListenOnly (); // Open the CAN-output so we can send Ack's
       updateMayor ();
       ckSetRunning ();
-      mayorInitTx(mayorID);
+      //mayorInitTx(mayorID);
    }
 
    return startupMode == ckStartDefault;
@@ -298,18 +257,14 @@ uint8_t checkReactionDocument()
 {
    if (CAN_RF0R(CAN1) & CAN_RF0R_FMP0_MASK) 
 		{		
-        	message = receive(0); 
-         // if(message.data[0] == mayorID){
-            ckProcessMessage (message.msgid, (void *)&message.data, message.length);                    
-         // }         
+        	message = receive(0);          
+          ckProcessMessage (message.msgid, (void *)&message.data, message.length);                                     
    	}
 
      if (CAN_RF1R(CAN1) & CAN_RF1R_FMP1_MASK) 
 		{		
         	message = receive(1);
-          //if(message.data[0] == mayorID){
-            ckProcessMessage (message.msgid, (void *)&message.data, message.length);                    
-          //}  
+          ckProcessMessage (message.msgid, (void *)&message.data, message.length);                              
    	}  
 
     if(message.data[7] == 123)
@@ -335,18 +290,14 @@ void ckMain (void)
      if (CAN_RF0R(CAN1) & CAN_RF0R_FMP0_MASK) 
 		{		
 
-        	message = receive(0);  
-         // if(message.data[0] == mayorID){
-            ckProcessMessage (message.msgid, (void *)&message.data, message.length);                    
-         // }                
+        	message = receive(0);           
+          ckProcessMessage (message.msgid, (void *)&message.data, message.length);                                           
    	}
      
      if (CAN_RF1R(CAN1) & CAN_RF1R_FMP1_MASK) 
 		{		
-        	message = receive(1);          
-         // if(message.data[0] == mayorID){
-            ckProcessMessage (message.msgid, (void *)&message.data, message.length);                    
-         // }
+        	message = receive(1);                   
+          ckProcessMessage (message.msgid, (void *)&message.data, message.length);                             
    	}            
 }
 
@@ -432,7 +383,6 @@ void ckProcessMessage(uint32_t cmId, uint8_t *cmBuf, uint8_t cmDlc) {
            }           
         }        
         else if (actMode == ckFreeze){
-          //  ckappDispatchFreeze(doc, cmBuf, cmDlc);
         }        
       }
     }
@@ -472,37 +422,24 @@ void KingsDoc(uint8_t *msgBuf, uint8_t msgLen) {
     case 2:
       KP2(msgBuf);
       break;
-    // case 3:
-    //   KP3(msgBuf);
-    //   break;
-    // case 4:
-    //   KP4(msgBuf);
-    //   break;
-        case 5: 
-         // hifi(msgBuf);
-         KP5(msgBuf);         
-          break;
-    // case 8:
-    //   KP8(msgBuf);
-    //   break;
-    // case 9:
-    //   KP9(msgBuf);
-    //   break;
-     case 16:
-       KP16(msgBuf);
-       break;
-    // case 21:
-    //   KP21(msgBuf);
-    //   break;
-    // case 22:
-    //   KP22(msgBuf);
-    //   break;
-    // case 129:
-    //   KP129(msgBuf);
-    //   break;
-/*  case 130:
-      KP130(msgBuf);
-      break; */
+    case 3:
+      KP3(msgBuf);
+      break;
+    case 4:
+      KP4(msgBuf);
+      break;
+      case 5:          
+        KP5(msgBuf);         
+        break;
+    case 8:
+      KP8(msgBuf);
+      break;
+    case 9:
+      KP9(msgBuf);
+      break;
+    case 16:
+      KP16(msgBuf);
+      break;            
     default:
       break;
   }
@@ -650,14 +587,7 @@ void KP0(uint8_t *msg) {
   ckCommMode newCommMode = (ckCommMode)(msg[3] & 0x03);
 
   if (newActMode != ckKeepActMode) {
-    actMode = newActMode;
-    if (actMode == ckReset){
-      // ckhalReset();
-    }     
-    else{
-    //  ckappSetActionMode(actMode);
-    }
-    
+    actMode = newActMode;    
   }
 
   if (newCommMode != ckKeepCommMode) {
@@ -721,8 +651,6 @@ uint8_t mayorTx(uint8_t page) {
     }
     buf[0] = 0;
     buf[1] = page;
-
-
 
     return ckSend(tdocMayor, buf, 8, 1);
   } else
@@ -843,28 +771,28 @@ void KP2(uint8_t *msg) {
   }
 }
 
-// /* Kings page 3. Assigning the city to groups.
-//  */
-// void KP3(uint8_t *msgBuf) {
-//   int i, j;
+/* Kings page 3. Assigning the city to groups.
+ */
+void KP3(uint8_t *msgBuf) {
+  int i, j;
 
-//   for (i = 2; i < 8; i++) {
-//     if (msgBuf[i] == 0)
-//       break; // The end.
-//     // Are we already a member of group msg[i]?
-//     for (j = 0; j < groupMaxCount; j++)
-//       if (ckGroups[j] == msgBuf[i])
-//         break;
-//     if (j == groupMaxCount) {
-//       // No. Add the group. Find an empty position in Groups[].
-//       for (j = 0; j < groupMaxCount; j++)
-//         if (ckGroups[j] == 0)
-//           break;
-//       if (j < groupMaxCount) // Are there any room?
-//         ckGroups[j] = msgBuf[i];
-//     }
-//   }
-// }
+  for (i = 2; i < 8; i++) {
+    if (msgBuf[i] == 0)
+      break; // The end.
+    // Are we already a member of group msg[i]?
+    for (j = 0; j < groupMaxCount; j++)
+      if (ckGroups[j] == msgBuf[i])
+        break;
+    if (j == groupMaxCount) {
+      // No. Add the group. Find an empty position in Groups[].
+      for (j = 0; j < groupMaxCount; j++)
+        if (ckGroups[j] == 0)
+          break;
+      if (j < groupMaxCount) // Are there any room?
+        ckGroups[j] = msgBuf[i];
+    }
+  }
+}
 
 
 /* Kings page 4. Removing the city from groups.
@@ -913,26 +841,26 @@ void KP5(uint8_t *msgBuf) {
     actReactMode = 1;
 }  
 
-// // Save changed baud rate settings to NVRAM. Doesn't change the actual
-// // Baudrate (use KP129 for this).
-// void KP8 (uint8_t *msg)
-// {
-//    if (msg[2] == CK_CAN_CONTROLLER_82527)
-//    {
-//       ckConf.btr = (msg[5] << 8) + msg[4];
+// Save changed baud rate settings to NVRAM. Doesn't change the actual
+// Baudrate (use KP129 for this).
+void KP8 (uint8_t *msg)
+{
+   if (msg[2] == CK_CAN_CONTROLLER_82527)
+   {
+      ckConf.btr = (msg[5] << 8) + msg[4];
 
-//      // ckhalSaveConfig(&ckConf);
-//    }
-// }
+     // ckhalSaveConfig(&ckConf);
+   }
+}
 
-// /* Kings page 9. Change the city's node number (in RAM only).
-//  */
-// void KP9(uint8_t *msgBuf) {
-//   ckConf.nodeNumber = msgBuf[3];
-//   updateMayor();
-//   if (msgBuf[2] != 0xff)
-//     (void)mayorTx(msgBuf[2]);
-// }
+/* Kings page 9. Change the city's node number (in RAM only).
+ */
+void KP9(uint8_t *msgBuf) {
+  ckConf.nodeNumber = msgBuf[3];
+  updateMayor();
+  if (msgBuf[2] != 0xff)
+    (void)mayorTx(msgBuf[2]);
+}
 
 /* Kings page 16. Setting the folder label and/or placing a document
  * into a folder.
@@ -1005,51 +933,6 @@ void KP16(uint8_t *msg) {
     i = updateSlot(i); // If tx/rcv status changed
 }
 
-// uint32_t respEnv = envInvalid;
-// /* Kings page 21.
-//  */
-// void KP21(uint8_t *msg) {
-//   uint8_t *p1,*p2;
-//   int i;
-
-//   switch(msg[1]) {
-//     case 0:
-//       respEnv = (uint32_t)msg[3]+((uint32_t)msg[4]<<8)+((uint32_t)msg[5]<<16)+
-//                 ((uint32_t)(msg[6]&0x1f)<<24);
-//       break;
-//     case 1:
-//       // We should respond if our serial number is less than or equal to the one given in the message
-//       p1 = ckhalGetSerial()+4; // points to the MSB
-//       p2 = msg+3+4;
-//       for (i = 0; i < 5; i++) {
-//         if (*p1 > *p2)
-//           return;
-//         else if (*p1-- != *p2--)
-//           break;
-//       }
-//       // The serial number matched. Transmit a response
-//       (void)canWriteMessage(respEnv, NULL, 0);
-//       break;
-//     default:
-//       break;
-//   }
-// }
-
-// /* Kings page 22.
-//  */
-// void KP22(uint8_t *msg) {
-//   uint8_t *p1,*p2;
-//   int i;
-
-//   p1 = ckhalGetSerial();
-//   p2 = msg+3;
-//   for (i = 0; i < 5; i++) {
-//     if (*p1++ != *p2++)
-//       return;
-//   }
-//   ckConf.nodeNumber = msg[2];
-//   updateMayor();
-// }
 
 // // Functions used by KP129
 // #define kp129SaveBaseNo 0
@@ -1319,20 +1202,17 @@ uint8_t ckSend(uint16_t doc, uint8_t *buf, uint8_t len, uint8_t sendIfFreeze) {
     return ckSendFailed;
   
   // Make sure no KP0/1/2/16 etc gets called messing things up
-  //ckhalDisableCANInterrupts();
   i = findSlotDoc(doc, 0);
   if (i < 0 ||
       (ckSlots[i].flags & (ffInUse | ffEnabled)) !=
       (ffInUse | ffEnabled) || ckSlots[i].envelope == envInvalid) {
-    //ckhalEnableCANInterrupts();
     return ckSendFailed;
   }
   if (ckSlots[i].flags & ffDLC)
     len = ckSlots[i].dlc; // Override the dlc.
 
   res = can_transmit(CAN1, ckSlots[i].envelope, false, false, len, buf);
-  //canWriteMessage(ckSlots[i].envelope, buf, len);
-  // ckhalEnableCANInterrupts();
+
   if (res == -1)
     return ckSendSuccess;
   else

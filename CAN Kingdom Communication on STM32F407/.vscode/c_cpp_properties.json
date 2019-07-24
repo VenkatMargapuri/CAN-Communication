@@ -6,8 +6,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/include",
-                "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/src",
+                "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/include",
+                "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/src",
                 "C:/Users/margs/.platformio/packages/framework-libopencm3",
                 "C:/Users/margs/.platformio/packages/framework-libopencm3/include",
                 "C:/Users/margs/.platformio/packages/tool-unity",
@@ -17,8 +17,8 @@
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "${workspaceRoot}/.vscode/.browse.c_cpp.db",
                 "path": [
-                    "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/include",
-                    "c:/Users/margs/Documents/PlatformIO/Projects/CAN Communication on STM32F407/src",
+                    "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/include",
+                    "c:/workspace/STM32F407-Code-Projects/CAN Kingdom Communication on STM32F407/src",
                     "C:/Users/margs/.platformio/packages/framework-libopencm3",
                     "C:/Users/margs/.platformio/packages/framework-libopencm3/include",
                     "C:/Users/margs/.platformio/packages/tool-unity",

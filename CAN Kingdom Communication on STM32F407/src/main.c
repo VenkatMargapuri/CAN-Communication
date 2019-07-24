@@ -20,16 +20,7 @@
 
 struct s_canmsg cmsg;
 bool xmsgidf, rtrf;
-int *ap, led_blink_count;
-BaseType_t xReturned;
-TaskHandle_t xHandle = NULL;
 
-
-void Controller_Blink_Task(void  *pvParameters);
-void Worker_Blink_Task(void  *pvParamters);
-void Led_Blink_Count_Task(void *pvParameters);
-void CkInit_Task(void *parameters);
-void King_Task(void *paramters);
 
 /* Set STM32 to 168 MHz. */
 static void clock_setup(void)
@@ -37,6 +28,7 @@ static void clock_setup(void)
 	rcc_clock_setup_hse_3v3(&hse_8mhz_3v3[CLOCK_3V3_168MHZ]);		
 }
 
+/* Receive a CAN Message */
 struct s_canmsg receive(uint8_t fifo){
 
     can_receive(CAN1,
@@ -53,55 +45,29 @@ struct s_canmsg receive(uint8_t fifo){
 	
 }
 
-void can1_rx0_isr(void){
-	//gpio_toggle(GPIOD, GPIO14);
-	// struct s_canmsg msg;	
-	// if (CAN_RF0R(CAN1) & CAN_RF0R_FMP0_MASK) 
-	// {
-    //    msg = receive(0);	   		
-    // }
-
-    // // Message pending on FIFO 1?
-    // if (CAN_RF1R(CAN1) & CAN_RF1R_FMP1_MASK) 
-	// {
-    //     msg = receive(1);
-    // }
-
-	// if(msg.data[1] != 161)
-	// {
-	// 	for(int i = 0; i < cityMaxCount; i++)
-	// 	{
-	// 		if(mayorInfo[i].city == -1)
-	// 		{
-	// 			mayorInfo[i].city = msg.xmsgidf;
-	// 			mayorInfo[i].identificationNo = msg.data[2];
-	// 			break;
-	// 		}
-	// 	}
-	// }
-		
-	//ckMain();
-
-	 uint8_t result = checkReactionDocument();
+/* Checks for a reaction document and toggles an LED if received with the correct information */
+void ckMayor2()
+{
+	uint8_t result = checkReactionDocument();
 	if(result == 1){
 		gpio_toggle(GPIOD, GPIO13);
 	}
 }
 
-void can1_tx_isr(void){
-	gpio_toggle(GPIOD, GPIO15);
+/* Interrupt Service Routine for CAN1 Peripheral */
+void can1_rx0_isr(void)
+{	
+	/* The function for the mayor to receive information from the King to set the Action document */
+	//ckMain();
 
-	/* Currently disabled because CAN request is being sent periodically. Enable if CAN Tx request interrupt is required. 
-	Use this primarily when there are FreeRTOS tasks involved. Remember: Tasks don't execute until interrupts are finished executing. */
-	//nvic_disable_irq(NVIC_CAN1_TX_IRQ);
-	//can_disable_irq(CAN1, NVIC_CAN1_TX_IRQ);
+	/* The function for the mayor to receive a reaction document from another mayor */
+	ckMayor2();	
 }
 
 static void exti_setup(void)
 {
 	/* Enable GPIOA clock. */
 	rcc_periph_clock_enable(RCC_GPIOA);
-	//rcc_periph_clock_enable(RCC_APB1ENR_TIM2EN);
 
 	/* Enable EXTI0 interrupt. */
 	nvic_enable_irq(NVIC_EXTI0_IRQ);
@@ -115,76 +81,14 @@ static void exti_setup(void)
 	exti_enable_request(EXTI0);	
 }
 
-void messageTransfer(){
-	int i = 0;
-	//exti_disable_request(EXTI0);
-	while(i < 1){
-		exti_reset_request(EXTI0);
-
-		ckMP1(1, 5, 3, 1, 4, 1);
-		exti_reset_request(EXTI0);
-		i++;
-	}
-}
-
+/* Function that Handles PA0 (button) Interrupt */
 void exti0_isr(void)
-{
-	// int messageID = 0;
-	// int messageData = 0;
-
-	// messageID = rand() % 100 + 1;
-	// messageData = rand() % 100 + 1;
-	messageTransfer();
-	// ap = &messageData;	
-	//exti_reset_request(EXTI0);
-	// can_transmit(CAN1, messageID, false, false, 1, (void *) ap);
-	
-	
+{	
+	ckMP1(1, 5, 3, 1, 4, 1);
+	exti_reset_request(EXTI0);
 }
 
-void Create_King_Task(void){
-	xTaskCreate(&King_Task, (const char* const) "King Message Task", configMINIMAL_STACK_SIZE, NULL, 1, &xHandle);
-}
-
-void King_Task(void *pvParameters){
-	int kingPageCounter = 0;
-	for(;;){
-		if(kingPageCounter <= 4){		
-		if(kingPageCounter == 0){
-			ckKP0(0, amKeep, cmKeep);
-			ckKP1(0, 0, 0, false);
-		}
-		if(kingPageCounter == 1){
-			ckKP2(0, 0, 0, false);						
-		}
-		if(kingPageCounter == 2){
-			ckKP2(0, 1, 3, false);			
-			ckKP16(0, 3, 1, 8, false, false, 1);
-		}
-		if(kingPageCounter == 3){
-			ckKP2(0, 2, 4, false); 
-			ckKP16(0, 4, 1, 8, false, false, 1);	
-		}
-		if(kingPageCounter == 4){
-			ckKP5(0, 5, 3, 1, 4, 1);			
-		}
-		// if(kingPageCounter == 5){
-		// 	ckMP1(0, 5, 3, 1, 4, 1);
-		// }		
-
-			kingPageCounter++;
-
-		}
-		else{
-			vTaskSuspend(&xHandle);
-		}
-		vTaskDelay(15000);
-
-		
-		
-	}	
-}
-
+/* Enables the CAN Receive Interrupts upon Receiving a CAN Message */
 void EnableCANRxISR(){
 	nvic_enable_irq(NVIC_CAN1_RX0_IRQ);
 	can_enable_irq(CAN1, NVIC_CAN1_RX0_IRQ);	
@@ -222,29 +126,7 @@ main(void) {
 
 	 /* Reset the CAN Peripheral */
 	 can_reset(CAN1);								 
-	 
-	 /* Uncomment for CAN Tx interrupt*/
-	// nvic_enable_irq(NVIC_CAN1_TX_IRQ);	
-	
-	/* Uncomment for CAN Tx interrupt */
-	//can_enable_irq(CAN1, NVIC_CAN1_TX_IRQ);
-		
-	// CAN transmission rate of 250 Kbps
-	// can_init(CAN1,
-	// false,
-	// true,
-	// true,
-	// false,
-	// false,
-	// false,
-	// CAN_BTR_SJW_1TQ,
-	// CAN_BTR_TS1_6TQ,
-	// CAN_BTR_TS2_1TQ,
-	// 21,
-	// false,
-	// false	
-	// );	
-
+	 	
 	//Transmission speed of 1 Mbps
 	can_init(CAN1,
 	false,
@@ -259,34 +141,7 @@ main(void) {
 	3,
 	false,
 	false	
-	);
-
-	// can_init(CAN1,
-	// false,
-	// true,
-	// true,
-	// false,
-	// false,
-	// false,
-	// CAN_BTR_SJW_1TQ,
-	// CAN_BTR_TS1_13TQ,
-	// CAN_BTR_TS2_2TQ,
-	// 21,
-	// false,
-	// false	
-	// );		
-
-	const uint16_t id1 = (
-    (123 << 5)  // STDID
-	);
-
-	const u_int16_t mask1 = (
-		(0b11111111111 << 5)
-	);
-
-	const uint16_t id2 = (
-		(456 << 5)
-	);
+	);	
 	
 	/* Enable this filter and disable all other filters to accept all messages */
 	can_filter_id_mask_32bit_init(CAN1,
@@ -294,32 +149,22 @@ main(void) {
 				0,     /* CAN ID */
 				0,     /* CAN ID mask */
 				0,     /* FIFO assignment (here: FIFO0) */
-				true); /* Enable the filter. */
-
-	// can_filter_id_mask_16bit_init(CAN1,
-	// 0,
-	// id1,
-	// mask1,
-	// id2,
-	// mask1,
-	// 0,
-	// true);
-					
+				true); /* Enable the filter. */		
 
 	can_enable_irq(CAN1, CAN_IER_FMPIE0);
 	can_enable_irq(CAN1, CAN_IER_FMPIE1);		
 
+	/* Function that sets the clock on the STM32F4 Discovery Board */
 	clock_setup();
+
+	/* Function that sets the external interrupt (button) for PA0 on the STM32F4 Discovery Board */
 	exti_setup();
 
+	/* Enables the CAN Interrupt upon receiving a CAN message */
 	EnableCANRxISR();
-	
-	//KingInit();
-	//Create_King_Task();
 
+	/* Initializes the Mayor device and sends a CAN message with its city ID */
 	ckInit(ckStartDefault);
-
-	vTaskStartScheduler();
 
 	while(1){
 
